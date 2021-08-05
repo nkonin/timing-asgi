@@ -7,3 +7,5 @@ templates
 venv
 *.egg-info
 .env
+.idea
+dist/

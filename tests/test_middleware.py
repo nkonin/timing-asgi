@@ -104,4 +104,3 @@ async def test_timing_middleware_sends_timings_even_if_app_raises_exception(
     with pytest.raises(Exception):
         await mw(scope(), receive, send)
     assert timing_client.timing.called
-    assert "http_status:500" in timing_client.timing.call_args_list[0][1]["tags"]

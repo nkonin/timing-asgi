@@ -26,16 +26,6 @@ class TimingMiddleware:
         return client
 
     async def __call__(self, scope, receive, send):
-        # locals inside the app function (send_wrapper) can't be assigned to,
-        # as the interpreter detects the assignment and thus creates a new
-        # local variable within that function, with that name.
-        instance = {"http_status_code": None}
-
-        def send_wrapper(response):
-            if response["type"] == "http.response.start":
-                instance["http_status_code"] = response["status"]
-            return send(response)
-
         if scope["type"] != "http":
             alog.debug(f"ASGI scope of type {scope['type']} is not supported yet")
             await self.app(scope, receive, send)
@@ -52,23 +42,13 @@ class TimingMiddleware:
             return
 
         def emit(stats):
-            statsd_tags = [
-                f"http_status:{instance['http_status_code']}",
-                f"http_method:{scope['method']}",
-            ]
-            self.client.timing(
-                f"{metric_name}", stats.time, tags=statsd_tags + ["time:wall"]
-            )
-            self.client.timing(
-                f"{metric_name}", stats.cpu_time, tags=statsd_tags + ["time:cpu"]
-            )
+            self.client.timing(f"{metric_name}", stats.time)
 
         with TimingStats(metric_name) as stats:
             try:
-                await self.app(scope, receive, send_wrapper)
+                await self.app(scope, receive, send)
             except Exception:
                 stats.stop()
-                instance["http_status_code"] = 500
                 emit(stats)
                 raise
         emit(stats)

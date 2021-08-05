@@ -1,13 +1,12 @@
-import resource
-import time
+# Use timer that's not susceptible to time of day adjustments.
+try:
+    # perf_counter is only present on Py3.3+
+    from time import perf_counter as time_now
+except ImportError:
+    # fall back to using time
+    from time import time as time_now
 
 from .interfaces import MetricNamer
-
-
-def get_cpu_time():
-    resources = resource.getrusage(resource.RUSAGE_SELF)
-    # add up user time (ru_utime) and system time (ru_stime)
-    return resources[0] + resources[1]
 
 
 class TimingStats(object):
@@ -15,12 +14,10 @@ class TimingStats(object):
         self.name = name
 
     def start(self):
-        self.start_time = time.time()
-        self.start_cpu_time = get_cpu_time()
+        self.start_time = time_now()
 
     def stop(self):
-        self.end_time = time.time()
-        self.end_cpu_time = get_cpu_time()
+        self.end_time = time_now()
 
     def __enter__(self):
         self.start()
@@ -29,10 +26,6 @@ class TimingStats(object):
     @property
     def time(self):
         return self.end_time - self.start_time
-
-    @property
-    def cpu_time(self):
-        return self.end_cpu_time - self.start_cpu_time
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
