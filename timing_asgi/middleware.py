@@ -12,13 +12,16 @@ class TimingMiddleware:
       metric_namer (MetricNamer): the callable used to construct metric names from the ASGI scope
     """
 
-    def __init__(self, app, client, metric_namer=None):
+    def __init__(self, app, client, metric_namer=None, unit='s'):
         if metric_namer is None:
             metric_namer = PathToName(prefix="unnamed")
 
         self.app = app
         self.client = self.ensure_compliance(client)
         self.metric_namer = metric_namer
+        if unit not in ('s', 'ms'):
+            raise ValueError('Unknown unit {unit}. Allowed values: "s" / "ms"')
+        self.unit = unit
 
     def ensure_compliance(self, client):
         assert hasattr(client, "timing")
@@ -42,7 +45,10 @@ class TimingMiddleware:
             return
 
         def emit(stats):
-            self.client.timing(f"{metric_name}", stats.time)
+            elapsed_time = stats.time
+            if self.unit == 'ms':
+                elapsed_time = 1000.0 * elapsed_time
+            self.client.timing(f"{metric_name}", elapsed_time)
 
         with TimingStats(metric_name) as stats:
             try:

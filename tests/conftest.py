@@ -24,6 +24,11 @@ def mw(starlette_app, timing_client):
 
 
 @pytest.yield_fixture(scope="function")
+def mw_ms(starlette_app, timing_client):
+    yield TimingMiddleware(starlette_app, client=timing_client, unit='ms')
+
+
+@pytest.yield_fixture(scope="function")
 def send():
     yield asynctest.CoroutineMock()
 

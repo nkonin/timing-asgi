@@ -91,6 +91,21 @@ async def test_timing_middleware_asgi_sends_timings(
 
 
 @pytest.mark.asyncio
+async def test_timing_middleware_asgi_sends_timings_ms(
+    mw, mw_ms, scope, timing_client, receive, send,
+):
+    await mw(scope(), receive, send)
+    assert timing_client.timing.called
+    s_time = timing_client.timing.call_args.args[1]
+
+    await mw_ms(scope(), receive, send)
+    assert timing_client.timing.called
+    ms_time = timing_client.timing.call_args.args[1]
+
+    assert pytest.approx(s_time * 1000.0, rel=1) == ms_time
+
+
+@pytest.mark.asyncio
 async def test_timing_middleware_sends_timings_even_if_app_raises_exception(
     mw, scope, timing_client, receive, send
 ):

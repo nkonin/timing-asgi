@@ -3,13 +3,13 @@ name = "timing-asgi-statsd"
 packages = [
     {include = "timing_asgi"},
 ]
-version = "0.3.0"
+version = "0.4.0"
 description = "ASGI middleware to emit timing metrics with something like statsd"
 authors = ["Nikita Konin <awesome@nkonin.me>", "Steinn Eldjárn Sigurðarson <steinnes@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 alog = "^0.9.13"
 
 [tool.poetry.dev-dependencies]
